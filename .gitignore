@@ -23,3 +23,7 @@ exp_*/eval_outputs/*
 checkpoint
 .DS_Store
 events.out.tfevents.*
+
+exp_shapes_dropout/shapes_dataset/NO_TRI_IMG_0_NO_TRI_QST_0/
+exp_shapes_dropout/shapes_dataset/NO_TRI_IMG_1_NO_TRI_QST_0/
+exp_shapes_dropout/shapes_dataset/NO_TRI_IMG_1_NO_TRI_QST_1/
