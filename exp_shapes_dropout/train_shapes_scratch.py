@@ -3,6 +3,8 @@ from __future__ import absolute_import, division, print_function
 import argparse
 parser = argparse.ArgumentParser()
 parser.add_argument('--gpu_id', type=int, default=0)
+parser.add_argument('--no_tri_img', type=int, default=0)
+parser.add_argument('--no_tri_qst', type=int, default=0)
 args = parser.parse_args()
 
 gpu_id = args.gpu_id  # set GPU id to use
@@ -17,8 +19,8 @@ sess = tf.Session(config=tf.ConfigProto(
     allow_soft_placement=False, log_device_placement=False))
 import json
 
-from models_shapes.nmn3_assembler import Assembler
-from models_shapes.nmn3_model import NMN3ModelAtt
+from models_shapes_dropout.nmn3_assembler import Assembler
+from models_shapes_dropout.nmn3_model import NMN3ModelAtt
 
 # Module parameters
 H_im = 30
@@ -43,22 +45,23 @@ baseline_decay = 0.99
 max_grad_l2_norm = 10
 max_iter = 400000
 snapshot_interval = 10000
-exp_name = "shapes_scratch"
-snapshot_dir = './exp_shapes/tfmodel/%s/' % exp_name
+exp_name = "shapes_scratch_dropout_notriimg_{}_notriqst_{}".format(args.no_tri_img, args.no_tri_qst)
+snapshot_dir = './exp_shapes_dropout/tfmodel/%s/' % exp_name
 
 # Log params
 log_interval = 20
-log_dir = './exp_shapes/tb/%s/' % exp_name
+log_dir = './exp_shapes_dropout/tb/%s/' % exp_name
 
 # Data files
-vocab_shape_file = './exp_shapes/data/vocabulary_shape.txt'
-vocab_layout_file = './exp_shapes/data/vocabulary_layout.txt'
+data_dir = './exp_shapes_dropout/shapes_dataset/NO_TRI_IMG_{}_NO_TRI_QST_{}/'.format(args.no_tri_img, args.no_tri_qst)
+vocab_shape_file = './exp_shapes_dropout/data/vocabulary_shape.txt'
+vocab_layout_file = './exp_shapes_dropout/data/vocabulary_layout.txt'
 image_sets = ['train.large', 'train.med', 'train.small', 'train.tiny']
-training_text_files = './exp_shapes/shapes_dataset/%s.query_str.txt'
-training_image_files = './exp_shapes/shapes_dataset/%s.input.npy'
-training_label_files = './exp_shapes/shapes_dataset/%s.output'
-training_gt_layout_file = './exp_shapes/data/%s.query_layout_symbols.json'
-image_mean_file = './exp_shapes/data/image_mean.npy'
+training_text_files = os.path.join(data_dir, '%s.query_str.txt')
+training_image_files = os.path.join(data_dir, '%s.input.npy')
+training_label_files = os.path.join(data_dir, '%s.output')
+# training_gt_layout_file = os.path.join(data_dir, './exp_shapes_dropout/data/%s.query_layout_symbols.json')
+# image_mean_file = './exp_shapes_dropout/data/image_mean.npy'
 
 # Load vocabulary
 with open(vocab_shape_file) as f:
@@ -81,8 +84,8 @@ for image_set in image_sets:
     with open(training_label_files % image_set) as f:
         training_labels += [l.strip() == 'true' for l in f.readlines()]
     training_images_list.append(np.load(training_image_files % image_set))
-    with open(training_gt_layout_file % image_set) as f:
-        gt_layout_list += json.load(f)
+    # with open(training_gt_layout_file % image_set) as f:
+    #     gt_layout_list += json.load(f)
 
 num_questions = len(training_questions)
 training_images = np.concatenate(training_images_list)
@@ -95,7 +98,7 @@ shuffle_inds = np.random.permutation(num_questions)
 training_questions = [training_questions[idx] for idx in shuffle_inds]
 training_labels = [training_labels[idx] for idx in shuffle_inds]
 training_images = training_images[shuffle_inds]
-gt_layout_list = [gt_layout_list[idx] for idx in shuffle_inds]
+# gt_layout_list = [gt_layout_list[idx] for idx in shuffle_inds]
 
 # number of training batches
 num_batches = np.ceil(num_questions / N)
@@ -103,17 +106,17 @@ num_batches = np.ceil(num_questions / N)
 # Turn the questions into vocabulary indices
 text_seq_array = np.zeros((T_encoder, num_questions), np.int32)
 seq_length_array = np.zeros(num_questions, np.int32)
-gt_layout_array = np.zeros((T_decoder, num_questions), np.int32)
+# gt_layout_array = np.zeros((T_decoder, num_questions), np.int32)
 for n_q in range(num_questions):
     tokens = training_questions[n_q].split()
     seq_length_array[n_q] = len(tokens)
     for t in range(len(tokens)):
         text_seq_array[t, n_q] = vocab_shape_dict[tokens[t]]
-    gt_layout_array[:, n_q] = assembler.module_list2tokens(
-        gt_layout_list[n_q], T_decoder)
+    # gt_layout_array[:, n_q] = assembler.module_list2tokens(
+    #     gt_layout_list[n_q], T_decoder)
 
-image_mean = np.load(image_mean_file)
-image_array = (training_images - image_mean).astype(np.float32)
+# image_mean = np.load(image_mean_file)
+image_array = (training_images - np.mean(training_images, axis=0)).astype(np.float32)
 vqa_label_array = np.array(training_labels, np.int32)
 
 # Network inputs
