@@ -21,7 +21,7 @@ N_TRAIN_ALL     = N_TRAIN_MED
 SHAPE_CIRCLE = 0
 SHAPE_SQUARE = 1
 SHAPE_TRIANGLE = 2
-N_SHAPES = SHAPE_TRIANGLE #+ 1
+N_SHAPES = 3
 SHAPE_STR = {0: "circle", 1: "square", 2: "triangle"}
 
 SIZE_SMALL = 0
@@ -258,8 +258,8 @@ def gen_images(query):
 if __name__ == "__main__":
     # with open("../log.yaml") as log_config_f:
     #     logging.config.dictConfig(yaml.load(log_config_f))
-    NO_TRIANGLE_IMAGES = True
-    NO_TRIANGLE_QUESTIONS = True
+    NO_TRIANGLE_IMAGES = False
+    NO_TRIANGLE_QUESTIONS = False
 
     seen = set()
     train_data = []

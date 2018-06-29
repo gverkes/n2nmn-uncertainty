@@ -206,22 +206,19 @@ for n_iter in range(max_iter):
     n_end = int(min(n_begin+N, num_questions))
 
     # set up input and output tensors
-    for i in range(2):
-        h = sess.partial_run_setup(
-            [nmn3_model.predicted_tokens, nmn3_model.entropy_reg,
-             scores, avg_sample_loss, train_step],
-            [text_seq_batch, seq_length_batch, image_batch,
-             compiler.loom_input_tensor, expr_validity_batch,
-             vqa_label_batch])
+    h = sess.partial_run_setup(
+        [nmn3_model.predicted_tokens, nmn3_model.entropy_reg,
+            scores, avg_sample_loss, train_step],
+        [text_seq_batch, seq_length_batch, image_batch,
+            compiler.loom_input_tensor, expr_validity_batch,
+            vqa_label_batch])
 
-        # Part 0 & 1: Run Convnet and generate module layout
-        tokens, entropy_reg_val = sess.partial_run(h,
-            (nmn3_model.predicted_tokens, nmn3_model.entropy_reg),
-            feed_dict={text_seq_batch: text_seq_array[:, n_begin:n_end],
-                       seq_length_batch: seq_length_array[n_begin:n_end],
-                       image_batch: image_array[n_begin:n_end]})
-
-        print(tokens)
+    # Part 0 & 1: Run Convnet and generate module layout
+    tokens, entropy_reg_val = sess.partial_run(h,
+        (nmn3_model.predicted_tokens, nmn3_model.entropy_reg),
+        feed_dict={text_seq_batch: text_seq_array[:, n_begin:n_end],
+                    seq_length_batch: seq_length_array[n_begin:n_end],
+                    image_batch: image_array[n_begin:n_end]})
 
     # Assemble the layout tokens into network structure
     expr_list, expr_validity_array = assembler.assemble(tokens)
