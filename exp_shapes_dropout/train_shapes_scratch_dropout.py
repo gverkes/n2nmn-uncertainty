@@ -18,8 +18,8 @@ sess = tf.Session(config=tf.ConfigProto(
     gpu_options=tf.GPUOptions(allow_growth=True),
     allow_soft_placement=False, log_device_placement=False))
 import json
-from models_shapes.nmn3_assembler import Assembler
-from models_shapes.nmn3_model import NMN3ModelAtt
+from models_shapes_dropout.nmn3_assembler import Assembler
+from models_shapes_dropout.nmn3_model import NMN3ModelAtt
 
 # Module parameters
 H_im = 30
@@ -44,7 +44,7 @@ baseline_decay = 0.99
 max_grad_l2_norm = 10
 max_iter = 400000
 snapshot_interval = 10000
-exp_name = "shapes_scratch_notriimg_{}_notriqst_{}".format(args.no_tri_img, args.no_tri_qst)
+exp_name = "shapes_scratch_dropout_notriimg_{}_notriqst_{}".format(args.no_tri_img, args.no_tri_qst)
 snapshot_dir = './exp_shapes_dropout/tfmodel/%s/' % exp_name
 
 # Log params
