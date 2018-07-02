@@ -4,6 +4,7 @@ import argparse
 parser = argparse.ArgumentParser()
 parser.add_argument('--exp_name', required=True)
 parser.add_argument('--snapshot_name', required=True)
+parser.add_argument('--data_dir', required=True)
 parser.add_argument('--test_split', required=True)
 parser.add_argument('--gpu_id', type=int, default=0)
 args = parser.parse_args()
@@ -40,17 +41,19 @@ N = 256
 
 exp_name = args.exp_name
 snapshot_name = args.snapshot_name
-snapshot_file = './exp_shapes/tfmodel/%s/%s' % (exp_name, snapshot_name)
+snapshot_file = './exp_shapes_dropout/tfmodel/%s/%s' % (exp_name, snapshot_name)
 
 # Data files
-vocab_shape_file = './exp_shapes/data/vocabulary_shape.txt'
-vocab_layout_file = './exp_shapes/data/vocabulary_layout.txt'
+data_dir = './exp_shapes_dropout/shapes_dataset/{}'.format(args.data_dir)
+vocab_shape_file = './exp_shapes_dropout/data/vocabulary_shape.txt'
+vocab_layout_file = './exp_shapes_dropout/data/vocabulary_layout.txt'
 image_sets = args.test_split.split(':')
-training_text_files = './exp_shapes/shapes_dataset/%s.query_str.txt'
-training_image_files = './exp_shapes/shapes_dataset/%s.input.npy'
-training_label_files = './exp_shapes/shapes_dataset/%s.output'
-training_gt_layout_file = './exp_shapes/data/%s.query_layout_symbols.json'
-image_mean_file = './exp_shapes/data/image_mean.npy'
+training_text_files = os.path.join(data_dir, '%s.query_str.txt')
+training_image_files = os.path.join(data_dir, '%s.input.npy')
+training_label_files = os.path.join(data_dir, '%s.output')
+
+# training_gt_layout_file = './exp_shapes/data/%s.query_layout_symbols.json'
+# image_mean_file = './exp_shapes/data/image_mean.npy'
 
 save_dir = './exp_shapes/results/%s/%s.%s' % (exp_name, snapshot_name, '_'.join(image_sets))
 save_file = save_dir + '.txt'
@@ -78,8 +81,8 @@ for image_set in image_sets:
     with open(training_label_files % image_set) as f:
         training_labels += [l.strip() == 'true' for l in f.readlines()]
     training_images_list.append(np.load(training_image_files % image_set))
-    with open(training_gt_layout_file % image_set) as f:
-            gt_layout_list += json.load(f)
+    # with open(training_gt_layout_file % image_set) as f:
+    #         gt_layout_list += json.load(f)
 
 num_questions = len(training_questions)
 training_images = np.concatenate(training_images_list)
@@ -92,7 +95,7 @@ shuffle_inds = np.random.permutation(num_questions)
 training_questions = [training_questions[idx] for idx in shuffle_inds]
 training_labels = [training_labels[idx] for idx in shuffle_inds]
 training_images = training_images[shuffle_inds]
-gt_layout_list = [gt_layout_list[idx] for idx in shuffle_inds]
+# gt_layout_list = [gt_layout_list[idx] for idx in shuffle_inds]
 
 # number of training batches
 num_batches = np.ceil(num_questions / N)
@@ -100,17 +103,18 @@ num_batches = np.ceil(num_questions / N)
 # Turn the questions into vocabulary indices
 text_seq_array = np.zeros((T_encoder, num_questions), np.int32)
 seq_length_array = np.zeros(num_questions, np.int32)
-gt_layout_array = np.zeros((T_decoder, num_questions), np.int32)
+# gt_layout_array = np.zeros((T_decoder, num_questions), np.int32)
 for n_q in range(num_questions):
     tokens = training_questions[n_q].split()
     seq_length_array[n_q] = len(tokens)
     for t in range(len(tokens)):
         text_seq_array[t, n_q] = vocab_shape_dict[tokens[t]]
-    gt_layout_array[:, n_q] = assembler.module_list2tokens(
-        gt_layout_list[n_q], T_decoder)
+    # gt_layout_array[:, n_q] = assembler.module_list2tokens(
+    #     gt_layout_list[n_q], T_decoder)
 
-image_mean = np.load(image_mean_file)
-image_array = (training_images - image_mean).astype(np.float32)
+# image_mean = np.load(image_mean_file)
+# image_array = (training_images - np.meanimage_mean).astype(np.float32)
+image_array = (training_images - np.mean(training_images, axis=0)).astype(np.float32)
 vqa_label_array = np.array(training_labels, np.int32)
 
 # Network inputs
@@ -159,10 +163,10 @@ for n_iter in range(int(num_batches)):
                    image_batch: image_array[n_begin:n_end]})
 
     # compute the accuracy of the predicted layout
-    gt_tokens = gt_layout_array[:, n_begin:n_end]
-    layout_correct += np.sum(np.all(np.logical_or(tokens == gt_tokens,
-                                                  gt_tokens == assembler.EOS_idx),
-                                    axis=0))
+    # gt_tokens = gt_layout_array[:, n_begin:n_end]
+    # layout_correct += np.sum(np.all(np.logical_or(tokens == gt_tokens,
+    #                                               gt_tokens == assembler.EOS_idx),
+    #                                 axis=0))
 
     # Assemble the layout tokens into network structure
     expr_list, expr_validity_array = assembler.assemble(tokens)

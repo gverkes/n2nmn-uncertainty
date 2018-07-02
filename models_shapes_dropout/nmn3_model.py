@@ -5,11 +5,11 @@ import tensorflow as tf
 import tensorflow_fold as td
 from tensorflow import convert_to_tensor as to_T
 
-from models_shapes import nmn3_netgen_att
-from models_shapes import nmn3_assembler
+from models_shapes_dropout import nmn3_netgen_att
+from models_shapes_dropout import nmn3_assembler
 
-from models_shapes.shapes_convnet import shapes_convnet
-from models_shapes.nmn3_modules import Modules
+from models_shapes_dropout.shapes_convnet import shapes_convnet
+from models_shapes_dropout.nmn3_modules import Modules
 
 from util.cnn import fc_layer as fc, conv_layer as conv
 

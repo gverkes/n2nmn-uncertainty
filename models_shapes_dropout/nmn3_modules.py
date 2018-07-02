@@ -54,7 +54,7 @@ class Modules:
             image_feat_mapped = _1x1_conv('conv_image', image_feat_grid,
                                           output_dim=map_dim)
 
-            image_feat_mapped = tf.nn.dropout(image_feat_mapped, tf.constant(0.7))
+            image_feat_mapped = tf.nn.dropout(image_feat_mapped, tf.constant(0.8))
 
             text_param_mapped = fc('fc_text', text_param, output_dim=map_dim)
             text_param_mapped = tf.reshape(text_param_mapped, to_T([N, 1, 1, map_dim]))
@@ -174,7 +174,7 @@ def _1x1_conv(name, bottom, output_dim, reuse=None):
             initializer=biases_initializer)
 
         conv_flat = tf.nn.xw_plus_b(bottom_flat, weights, biases)
-        conv = tf.reshape(conv_flat_dropout, to_T([N, H, W, output_dim]))
+        conv = tf.reshape(conv_flat, to_T([N, H, W, output_dim]))
 
     return conv
 
