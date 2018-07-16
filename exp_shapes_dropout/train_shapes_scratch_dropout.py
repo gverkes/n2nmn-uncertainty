@@ -43,7 +43,7 @@ weight_decay = 5e-4
 baseline_decay = 0.99
 max_grad_l2_norm = 10
 max_iter = 400000
-snapshot_interval = 10000
+snapshot_interval = 100000
 exp_name = "shapes_scratch_dropout_notriimg_{}_notriqst_{}".format(args.no_tri_img, args.no_tri_qst)
 snapshot_dir = './exp_shapes_dropout/tfmodel/%s/' % exp_name
 
@@ -52,7 +52,7 @@ log_interval = 20
 log_dir = './exp_shapes_dropout/tb/%s/' % exp_name
 
 # Data files
-data_dir = './exp_shapes_dropout/shapes_dataset/NO_TRI_IMG_{}_NO_TRI_QST_{}/'.format(args.no_tri_img, args.no_tri_qst)
+data_dir = './exp_shapes_dropout/shapes_dataset/no_tri_img_{}_no_tri_qst_{}/'.format(args.no_tri_img, args.no_tri_qst)
 vocab_shape_file = './exp_shapes_dropout/data/vocabulary_shape.txt'
 vocab_layout_file = './exp_shapes_dropout/data/vocabulary_layout.txt'
 image_sets = ['train.large', 'train.med', 'train.small', 'train.tiny']
