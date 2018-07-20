@@ -7,6 +7,8 @@
 *~
 *.swp
 
+.vscode
+
 exp_*/data/*
 exp_*/tfmodel/*
 exp_*/results/*
